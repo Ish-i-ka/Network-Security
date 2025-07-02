@@ -12,6 +12,8 @@ venv/
 #csv files
 *.csv
 
+finalnetworksecurity.pdf
+ 
 # Distribution / packaging
 .Python
 build/
