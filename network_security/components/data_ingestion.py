@@ -33,15 +33,17 @@ class DataIngestion:
         try:
             database_name=self.data_ingestion_config.database_name
             collection_name=self.data_ingestion_config.collection_name
-            self.mongo_client=pymongo.MongoClient(MONGO_DB_URL)
+            self.mongo_client=pymongo.MongoClient(MONGO_DB_URL)     #connecting to MongoDB
             collection=self.mongo_client[database_name][collection_name]
 
-            df=pd.DataFrame(list(collection.find()))
+            df=pd.DataFrame(list(collection.find()))        #the find() method returns a cursor, which is then converted to a list of dict, each one represent a row 
+           
+            #Cleaning the dataframe
             if "_id" in df.columns.to_list():
                 df=df.drop(columns=["_id"],axis=1)
-            
             df.replace({"na":np.nan},inplace=True)
             return df
+        
         except Exception as e:
             raise NetworkSecurityException
         
@@ -49,10 +51,10 @@ class DataIngestion:
         try:
             feature_store_file_path=self.data_ingestion_config.feature_store_file_path
             #creating folder
-            dir_path = os.path.dirname(feature_store_file_path)
+            dir_path = os.path.dirname(feature_store_file_path)     #extracting only directory name
             os.makedirs(dir_path,exist_ok=True)
             dataframe.to_csv(feature_store_file_path,index=False,header=True)
-            return dataframe
+            return dataframe        #returning the dataframe after saving it to feature store as csv file
             
         except Exception as e:
             raise NetworkSecurityException(e,sys)

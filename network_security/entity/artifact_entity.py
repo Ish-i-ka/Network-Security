@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 @dataclass
 class DataIngestionArtifact:
+    '''This class shows what output we get from data ingestion process.'''
     trained_file_path:str
     test_file_path:str
 
