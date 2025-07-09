@@ -11,8 +11,9 @@ certifi
 pymongo[srv] == 4.7
 dill
 pyyaml
-mlflow
+mlflow==2.22.1
 dagshub
-
+fastapi
+uvicorn
 
 ##-e .
