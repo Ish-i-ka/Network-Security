@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Network Security Analysis</title>
+    <style>
+        body {
+            background: #f4f8fb;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        h2 {
+            color: #2c3e50;
+            margin-top: 60px;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+            letter-spacing: 1px;
+        }
+        form {
+            background: #fff;
+            padding: 32px 40px 28px 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(44,62,80,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+        }
+        input[type="file"] {
+            padding: 8px;
+            border: 1px solid #bfc9d1;
+            border-radius: 6px;
+            background: #f7fafc;
+            font-size: 1em;
+            color: #34495e;
+            cursor: pointer;
+            width: 250px;
+        }
+        input[type="submit"] {
+            background: #2980b9;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 32px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 10px;
+        }
+        input[type="submit"]:hover {
+            background: #1a5a85;
+        }
+    </style>
+</head>
+<body>
+    <h2>Network Security Analysis</h2>
+    <form action="http://localhost:8000/predict" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".csv" required>
+        <input type="submit" value="Analyze Security">
+    </form>
+</body>
+</html>

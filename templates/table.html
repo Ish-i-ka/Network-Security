@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Security Analysis</title>
+    
+    <!-- Include Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Include Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --dark: #212529;
+            --light: #f8f9fa;
+        }
+        
+        body {
+            background-color: #f5f7fb;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .security-card {
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .security-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .threat-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        
+        .threat-low {
+            background-color: #e6f7e6;
+            color: #2ecc71;
+        }
+        
+        .threat-medium {
+            background-color: #fff8e6;
+            color: #f39c12;
+        }
+        
+        .threat-high {
+            background-color: #ffe6e6;
+            color: #e74c3c;
+        }
+        
+        .stat-card {
+            border-left: 4px solid var(--primary);
+        }
+        
+        .visualization-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-shield-alt me-2"></i>Network Security Guardian
+            </a>
+        </div>
+    </nav>
+    
+    <div class="container py-5">
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <div class="card security-card stat-card">
+                    <div class="card-body">
+                        <h5 class="card-title text-muted">Total Predictions</h5>
+                        <h2 class="card-text" id="total-count">0</h2>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-3">
+                <div class="card security-card stat-card">
+                    <div class="card-body">
+                        <h5 class="card-title text-muted">Safe Connections</h5>
+                        <h2 class="card-text text-success" id="safe-count">0</h2>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-3">
+                <div class="card security-card stat-card">
+                    <div class="card-body">
+                        <h5 class="card-title text-muted">Potential Threats</h5>
+                        <h2 class="card-text text-danger" id="threat-count">0</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Threat Distribution Visualization -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="visualization-container">
+                    <h4 class="mb-4"><i class="fas fa-chart-pie me-2"></i>Threat Distribution</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <canvas id="threatChart" height="250"></canvas>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="alert alert-info">
+                                <h5><i class="fas fa-info-circle me-2"></i>Understanding Threats</h5>
+                                <p class="mb-0">
+                                    This shows the distribution of different threat levels detected in your network traffic. 
+                                    Focus on addressing high-risk threats first.
+                                </p>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <h5>Threat Level Guide:</h5>
+                                <ul class="list-group">
+                                    <li class="list-group-item">
+                                        <span class="threat-badge threat-low">Low</span> - Normal network activity
+                                    </li>
+                                    <li class="list-group-item">
+                                        <span class="threat-badge threat-medium">Medium</span> - Suspicious activity worth monitoring
+                                    </li>
+                                    <li class="list-group-item">
+                                        <span class="threat-badge threat-high">High</span> - Potential security breach requiring action
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Results Table -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card security-card">
+                    <div class="card-header bg-white">
+                        <h4 class="mb-0"><i class="fas fa-table me-2"></i>Prediction Results</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            {{ table | safe }}
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white">
+                        <button class="btn btn-primary" id="download-btn">
+                            <i class="fas fa-download me-2"></i>Download Full Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Include Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Include Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        // Initialize after page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Calculate threat stats
+            calculateThreatStats();
+            
+            // Initialize threat chart
+            initThreatChart();
+            
+            // Setup download button
+            document.getElementById('download-btn').addEventListener('click', downloadReport);
+            
+        });
+        
+        function calculateThreatStats() {
+            const rows = document.querySelectorAll('tbody tr');
+            let total = 0;
+            let safe = 0;
+            let threats = 0;
+            
+            rows.forEach(row => {
+                total++;
+
+                const threatBadge = row.querySelector('.threat-badge');
+                
+                if (threatBadge) {
+                    if (threatBadge.classList.contains('threat-low')) {
+                        safe++;
+                    } else {
+                        threats++;
+                    }
+                }
+            });
+            
+            document.getElementById('total-count').textContent = total;
+            document.getElementById('safe-count').textContent = safe;
+            document.getElementById('threat-count').textContent = threats;
+        }
+        
+        function addThreatBadges() {
+            const threatCells = document.querySelectorAll('td:last-child(2)');
+            
+            threatCells.forEach(cell => {
+                const value = parseFloat(cell.textContent.trim());
+                let badgeClass = '', text = '';
+                
+                if (value === 0) {
+                    badgeClass = 'threat-low';
+                    text = 'Low';
+                } else if (value === 1) {
+                    badgeClass = 'threat-medium';
+                    text = 'Medium';
+                } else if( value >= 2) {
+                    badgeClass = 'threat-high';
+                    text = 'High';
+                }
+                
+                 if (badgeClass) {
+                    cell.innerHTML = `<span class="threat-badge ${badgeClass}">${text}</span>`;
+                 }
+            });
+        }
+        
+        function initThreatChart() {
+            const threatCounts = {
+                low: 0,
+                medium: 0,
+                high: 0
+            };
+            const lowBadges = document.querySelectorAll('.threat-badge.threat-low');
+            const mediumBadges = document.querySelectorAll('.threat-badge.threat-medium');
+            const highBadges = document.querySelectorAll('.threat-badge.threat-high');
+            
+            threatCounts.low = lowBadges.length;
+            threatCounts.medium = mediumBadges.length;
+            threatCounts.high = highBadges.length;
+
+        
+           if (threatCounts.low + threatCounts.medium + threatCounts.high > 0) {
+            const ctx = document.getElementById('threatChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Low Risk', 'Medium Risk', 'High Risk'],
+                    datasets: [{
+                        data: [threatCounts.low, threatCounts.medium, threatCounts.high],
+                        backgroundColor: [
+                            '#2ecc71',
+                            '#f39c12',
+                            '#e74c3c'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: ${context.parsed} connections`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+                } else {
+                    console.warn("No threat data found for chart");
+            }
+    }
+    
+        function downloadReport() {
+            alert('Would download CSV report in real implementation');
+        }
+
+    </script>
+</body>
+</html>
