@@ -48,21 +48,65 @@ The project is built around a central `TrainingPipeline` that executes a sequenc
 
 ## Directory Structure
 
-*   `app.py` - Main FastAPI application
-*   `final_model/` - Stores the final trained model and preprocessor
-*   `templates/` - HTML templates for the frontend
-*   `.env` - Environment variables (ignored by Git)
-*   `requirements.txt` - Project dependencies
-*   `README.md`
-*   `network_security/` - Main Python source module
-    *   `__init__.py`
-    *   `components/` - Individual pipeline stages
-    *   `pipeline/` - Pipeline orchestrator
-    *   `entity/` - Data classes for artifacts and configs
-    *   `constant/`
-    *   `exception/`
-    *   `logging/`
-    *   `utils/`
+```plaintext
+└── ish-i-ka-network-security/
+    ├── README.md
+    ├── app.py
+    ├── Dockerfile
+    ├── LICENSE
+    ├── main.py
+    ├── push_data.py
+    ├── requirements.txt
+    ├── setup.py
+    ├── test_mongodb.py
+    ├── data_schema/
+    │   └── schema.yaml
+    ├── network_security/
+    │   ├── __init__.py
+    │   ├── cloud/
+    │   │   └── __init__.py
+    │   ├── components/
+    │   │   ├── __init__.py
+    │   │   ├── data_ingestion.py
+    │   │   ├── data_transformation.py
+    │   │   ├── data_validation.py
+    │   │   └── model_trainer.py
+    │   ├── constant/
+    │   │   ├── __init__.py
+    │   │   └── training_pipeline/
+    │   │       └── __init__.py
+    │   ├── entity/
+    │   │   ├── __init__.py
+    │   │   ├── artifact_entity.py
+    │   │   └── config_entity.py
+    │   ├── exception/
+    │   │   ├── __init__.py
+    │   │   └── exception.py
+    │   ├── logging/
+    │   │   ├── __init__.py
+    │   │   └── logger.py
+    │   ├── pipeline/
+    │   │   ├── __init__.py
+    │   │   ├── batch_prediction.py
+    │   │   └── training_pipeline.py
+    │   └── utils/
+    │       ├── __init__.py
+    │       ├── main_utils/
+    │       │   ├── __init__.py
+    │       │   └── utils.py
+    │       └── ml_utils/
+    │           ├── __init__.py
+    │           ├── metric/
+    │           │   ├── __init__.py
+    │           │   └── classification_metric.py
+    │           └── model/
+    │               ├── __init__.py
+    │               └── estimator.py
+    ├── templates/
+        ├── table.html
+        └── upload.html
+   
+```
 
 ## Conclusion and Real-World Applications
 
