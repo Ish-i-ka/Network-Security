@@ -7,7 +7,7 @@ ca = certifi.where()'''
 from dotenv import load_dotenv
 load_dotenv()
 
-mongo_db_url = os.getenv("MONGODB_URL_KEY")
+mongo_db_url = os.getenv("MONGO_DB_URL")
 
 import pymongo
 
@@ -27,7 +27,7 @@ from network_security.utils.main_utils.utils import load_object
 from network_security.utils.ml_utils.model.estimator import NetworkModel
 
 
-client = pymongo.MongoClient(os.getenv("MONGODB_URL_KEY"))
+client = pymongo.MongoClient(os.getenv("MONGO_DB_URL"))
 
 from network_security.constant.training_pipeline import DATA_INGESTION_COLLECTION_NAME
 from network_security.constant.training_pipeline import DATA_INGESTION_DATABASE_NAME
@@ -39,6 +39,7 @@ collection = database[DATA_INGESTION_COLLECTION_NAME]
 app = FastAPI()
 origins = ["*"]
 
+#This configures the CORS rules
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -48,18 +49,21 @@ app.add_middleware(
 )
 
 from fastapi.templating import Jinja2Templates
-templates = Jinja2Templates(directory="./templates")
+templates = Jinja2Templates(directory="./templates")       # tells FastAPI to look for HTML files in templates directory
 
-@app.get("/", tags=["authentication"])
-async def index():
-    return RedirectResponse(url="/docs")
+@app.get("/", tags=["prediction_ui"])
+async def index(request: Request):
+    """
+    This route serves the main upload page.
+    """
+    return templates.TemplateResponse("upload.html", {"request": request})        # immediately redirects the user to the upload page
 
 @app.get("/train")
 async def train_route():
     try:
         train_pipeline=TrainingPipeline()
         train_pipeline.run_pipeline()
-        return Response("Training is successful")
+        return Response("Training is successful")       #If the pipeline completes without errors
     except Exception as e:
         raise NetworkSecurityException(e,sys)
    
@@ -67,6 +71,9 @@ async def train_route():
 #for batch prediction 
 @app.post("/predict")
 async def predict_route(request: Request,file: UploadFile = File(...)):
+    """
+    Endpoint to handle file upload by user at frontend and make predictions.
+    """
     try:
         df=pd.read_csv(file.file)
         #print(df)
@@ -84,11 +91,10 @@ async def predict_route(request: Request,file: UploadFile = File(...)):
         threat_explanations = []
         for threat_level in y_pred:
             if threat_level == 0:
-                threat_explanations.append("Normal network activity - no action needed")
-            elif threat_level == 1:
-                threat_explanations.append("Suspicious activity - monitor closely")
+                threat_explanations.append("Legitimate")
             else:
-                threat_explanations.append("High risk threat - immediate action required")
+                threat_explanations.append("Suspicious")
+            
         
         df['threat_explanation'] = threat_explanations
         

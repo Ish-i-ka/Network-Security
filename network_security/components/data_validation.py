@@ -19,7 +19,7 @@ class DataValidation:
         except Exception as e:
             raise NetworkSecurityException(e,sys)
         
-    @staticmethod
+    @staticmethod       #means that this method can be called without an instance(self) of the class
     def read_data(file_path)->pd.DataFrame:
         try:
             return pd.read_csv(file_path)
@@ -28,25 +28,33 @@ class DataValidation:
         
     def validate_number_of_columns(self,dataframe:pd.DataFrame)->bool:
         try:
-            number_of_columns=len(self._schema_config)
-            logging.info(f"Required number of columns:{number_of_columns}")
-            logging.info(f"Data frame has columns:{len(dataframe.columns)}")
-            if len(dataframe.columns)==number_of_columns:
+            # Only count columns under the 'columns' key in schema.yaml
+            schema_columns = []
+            if isinstance(self._schema_config, dict) and 'columns' in self._schema_config:
+                schema_columns = [list(col.keys())[0] for col in self._schema_config['columns'] if isinstance(col, dict)]
+            logging.info(f"Schema columns: {schema_columns}")
+            number_of_columns = len(schema_columns)
+            logging.info(f"Required number of columns from schema: {number_of_columns}")
+            logging.info(f"Train/Test DataFrame columns: {list(dataframe.columns)}")
+            logging.info(f"Data frame has columns: {len(dataframe.columns)}")
+            if len(dataframe.columns) == number_of_columns:
                 return True
+            logging.warning(f"Column count mismatch: expected {number_of_columns}, got {len(dataframe.columns)}")
             return False
         except Exception as e:
             raise NetworkSecurityException(e,sys)
         
     def detect_dataset_drift(self,base_df,current_df,threshold=0.05)->bool:
         try:
-            status=True
-            report={}
+            status=True     #means no drift found
+            report={}       #to store the drift report
             for column in base_df.columns:
                 d1=base_df[column]
                 d2=current_df[column]
-                is_same_dist=ks_2samp(d1,d2)
+                is_same_dist=ks_2samp(d1,d2)        #KS test to check if two samples are drawn from the same distribution
+                #ks_2samp returns a p-value, which is the probability that the two samples are drawn from the same distribution or not
                 if threshold<=is_same_dist.pvalue:
-                    is_found=False
+                    is_found=False  #means no drift found
                 else:
                     is_found=True
                     status=False
@@ -55,13 +63,14 @@ class DataValidation:
                     "drift_status":is_found
                     
                     }})
+            #Artifacts/date/data_validation/drift_report/report.yaml
             drift_report_file_path = self.data_validation_config.drift_report_file_path
 
             #Create directory
             dir_path = os.path.dirname(drift_report_file_path)
             os.makedirs(dir_path,exist_ok=True)
             write_yaml_file(file_path=drift_report_file_path,content=report)
-
+            return status
         except Exception as e:
             raise NetworkSecurityException(e,sys)
         
@@ -77,33 +86,49 @@ class DataValidation:
             
             ## validate number of columns
 
-            status=self.validate_number_of_columns(dataframe=train_dataframe)
-            if not status:
-                error_message=f"Train dataframe does not contain all columns.\n"
-            status = self.validate_number_of_columns(dataframe=test_dataframe)
-            if not status:
-                error_message=f"Test dataframe does not contain all columns.\n"   
+            valid_train_path = self.data_validation_config.valid_train_file_path
+            valid_test_path = self.data_validation_config.valid_test_file_path
+            invalid_train_path = self.data_validation_config.invalid_train_file_path 
+            invalid_test_path = self.data_validation_config.invalid_test_file_path 
 
-            ## lets check datadrift
-            status=self.detect_dataset_drift(base_df=train_dataframe,current_df=test_dataframe)
-            dir_path=os.path.dirname(self.data_validation_config.valid_train_file_path)
-            os.makedirs(dir_path,exist_ok=True)
+            train_valid = self.validate_number_of_columns(dataframe=train_dataframe)
+            test_valid = self.validate_number_of_columns(dataframe=test_dataframe)
 
-            train_dataframe.to_csv(
-                self.data_validation_config.valid_train_file_path, index=False, header=True
+            # Save valid/invalid train dataframe
+            if train_valid:
+                dir_path = os.path.dirname(valid_train_path)
+                os.makedirs(dir_path, exist_ok=True)
+                train_dataframe.to_csv(valid_train_path, index=False, header=True)
+            else:
+                if invalid_train_path:
+                    dir_path = os.path.dirname(invalid_train_path)
+                    os.makedirs(dir_path, exist_ok=True)
+                    train_dataframe.to_csv(invalid_train_path, index=False, header=True)
 
-            )
+            # Save valid/invalid test dataframe
+            if test_valid:
+                dir_path = os.path.dirname(valid_test_path)
+                os.makedirs(dir_path, exist_ok=True)
+                test_dataframe.to_csv(valid_test_path, index=False, header=True)
+            else:
+                if invalid_test_path:
+                    dir_path = os.path.dirname(invalid_test_path)
+                    os.makedirs(dir_path, exist_ok=True)
+                    test_dataframe.to_csv(invalid_test_path, index=False, header=True)
 
-            test_dataframe.to_csv(
-                self.data_validation_config.valid_test_file_path, index=False, header=True
-            )
-            
+            # Only run drift detection if both are valid
+            drift_status = None
+            if train_valid and test_valid:
+                drift_status = self.detect_dataset_drift(base_df=train_dataframe, current_df=test_dataframe)
+            else:
+                drift_status = False        # means drift found
+
             data_validation_artifact = DataValidationArtifact(
-                validation_status=status,
-                valid_train_file_path=self.data_ingestion_artifact.trained_file_path,
-                valid_test_file_path=self.data_ingestion_artifact.test_file_path,
-                invalid_train_file_path=None,
-                invalid_test_file_path=None,
+                validation_status=drift_status,
+                valid_train_file_path=valid_train_path if train_valid else None,
+                valid_test_file_path=valid_test_path if test_valid else None,
+                invalid_train_file_path=invalid_train_path if not train_valid else None,
+                invalid_test_file_path=invalid_test_path if not test_valid else None,
                 drift_report_file_path=self.data_validation_config.drift_report_file_path,
             )
             return data_validation_artifact

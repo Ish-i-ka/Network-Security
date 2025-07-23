@@ -90,7 +90,7 @@ class TrainingPipeline:
     ## local artifact is going to s3 bucket    
       
     
-    
+    #this method is called in app.py
     def run_pipeline(self):
         try:
             data_ingestion_artifact=self.start_data_ingestion()

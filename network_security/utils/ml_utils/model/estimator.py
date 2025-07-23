@@ -10,7 +10,7 @@ class NetworkModel:
     def __init__(self,preprocessor,model):
         try:
             self.preprocessor = preprocessor
-            self.model = model
+            self.model = model          #best model is taken here
         except Exception as e:
             raise NetworkSecurityException(e,sys)
     

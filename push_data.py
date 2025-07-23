@@ -27,7 +27,7 @@ class NetworkDataExtract():
         '''To insert data from local machine into MongoDB we need to convert the CSV file into JSON format.'''
         try:
             data=pd.read_csv(file_path)
-            data.reset_index(drop=True,inplace=True)
+            data.reset_index(drop=True,inplace=True)                #keeps the sequence of every record from 0 to n-1
             records=list(json.loads(data.T.to_json()).values())     #df is transposed, converted to a list of dict i.e, json format
             return records
         except Exception as e:

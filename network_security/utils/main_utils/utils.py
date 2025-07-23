@@ -18,7 +18,7 @@ def read_yaml_file(file_path: str) -> dict:
     """
     try:
         with open(file_path, 'r') as file:
-            return yaml.safe_load(file)
+            return yaml.safe_load(file)     #converts schema.yaml into dictionary
     except Exception as e:
         raise NetworkSecurityException(e, sys) from e
     
@@ -29,7 +29,7 @@ def write_yaml_file(file_path: str, content: object, replace: bool = False) -> N
                 os.remove(file_path)
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, "w") as file:
-            yaml.dump(content, file)
+            yaml.dump(content, file)        #saves the drift report in report.yaml file
     except Exception as e:
         raise NetworkSecurityException(e, sys)
     
@@ -71,7 +71,7 @@ def load_object(file_path: str)->object:
             raise Exception(f"The file: {file_path} does not exists")
         with open(file_path, 'rb') as file_obj:
             print(file_obj)
-            return pickle.load(file_obj)
+            return pickle.load(file_obj)        #preprocessor object is loaded from preprocessing.pkl file under data
     except Exception as e:
         raise NetworkSecurityException(e,sys)
     
@@ -87,7 +87,7 @@ def load_numpy_array_data(file_path:str)->np.array:
     
 def evaluate_models(X_train, y_train,X_test,y_test,models,param):
     try:
-        report = {}
+        report = {}     # to store model name and its R2-score
 
         for i in range(len(list(models))):
             model = list(models.values())[i]
@@ -96,10 +96,11 @@ def evaluate_models(X_train, y_train,X_test,y_test,models,param):
             gs = GridSearchCV(model,para,cv=3)
             gs.fit(X_train,y_train)
 
-            model.set_params(**gs.best_params_)
+            
+            # Set the best parameters to the model
+            model.set_params(**gs.best_params_) 
             model.fit(X_train,y_train)
 
-            #model.fit(X_train, y_train)  # Train model
 
             y_train_pred = model.predict(X_train)
 

@@ -47,7 +47,7 @@ class ModelTrainer:
     def track_mlflow(self, best_model, classificationmetric, best_model_name):
         #set registry URI for DagsHub
         mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI")) 
-        tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
+        tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme    #holds the protocol type(https) of the uri
         
         with mlflow.start_run():
             f1_score = classificationmetric.f1_score
@@ -60,12 +60,12 @@ class ModelTrainer:
             mlflow.log_metric("f1_score", f1_score)
             mlflow.log_metric("precision", precision_score)
             mlflow.log_metric("recall_score", recall_score)
-            mlflow.sklearn.log_model(best_model, "model")
+            mlflow.sklearn.log_model(best_model, "model")       #"model" is the name of the model artifact in mlflow
 
             # Model registry does not work with file store
             if tracking_url_type_store != "file":
                 model_name = f"{best_model_name}_model"
-                mlflow.sklearn.log_model(best_model, "model", registered_model_name=model_name)
+                mlflow.sklearn.log_model(best_model, "model", registered_model_name=model_name) #creates a new version of the model that was already in the registry.
             else:
                 mlflow.sklearn.log_model(best_model, "model")
 
@@ -133,7 +133,7 @@ class ModelTrainer:
         model_dir_path = os.path.dirname(self.model_trainer_config.trained_model_file_path)
         os.makedirs(model_dir_path, exist_ok=True)
         
-        Network_Model = NetworkModel(preprocessor=preprocessor, model=best_model)
+        Network_Model = NetworkModel(preprocessor=preprocessor, model=best_model)       #Network_Model is an instance of NetworkModel class that bundle the preprocessor and model together
         save_object(self.model_trainer_config.trained_model_file_path, obj=Network_Model)
         # model pusher
         save_object("final_model/model.pkl",best_model)

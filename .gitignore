@@ -12,6 +12,8 @@ venv/
 #csv files
 *.csv
 
+*.pkl
+
 finalnetworksecurity.pdf
  
 # Distribution / packaging

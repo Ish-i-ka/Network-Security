@@ -61,10 +61,10 @@ class DataIngestion:
         
     def split_data_as_train_test(self,dataframe: pd.DataFrame):
         try:
+            logging.info("Performing train test split on the dataframe")
             train_set, test_set = train_test_split(
                 dataframe, test_size=self.data_ingestion_config.train_test_split_ratio
             )
-            logging.info("Performed train test split on the dataframe")
 
             logging.info(
                 "Exited split_data_as_train_test method of Data_Ingestion class"
